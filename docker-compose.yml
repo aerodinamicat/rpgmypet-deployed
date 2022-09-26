@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: rpgmypet_db
+    build:
+      context: ./internal/databases
+      dockerfile: .
+    ports:
+      - "54321:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_SCHEMA}
+  
+  server:
+    container_name: rpgmypet_app
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "7050:7050"
+    environment:
+      - APP_HOST=localhost
+      - APP_PORT=7050
+      - DB_USER=postgres
+      - DB_PASSWORD=admin1234
+      - DB_HOST=34.175.1.64
+      - DB_PORT=5432
+      - DB_SCHEMA=postgres
+    depends_on:
+      - db

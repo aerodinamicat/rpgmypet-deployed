@@ -1,0 +1,303 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Así se muestra como hacer una API Rest en Golang.\nSe trata de una vista detallada de las especificaciones del lenguaje.",
+    "title": "RPGMyPet API",
+    "contact": {
+      "name": "Saam Aerodinamicat",
+      "email": "aerodinamicat@gmail.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:7050",
+  "basePath": "/",
+  "paths": {
+    "/creamascota": {
+      "post": {
+        "description": "Añade una nueva 'mascota' al sistema\nAgrega una nueva entidad 'pet' al sistema",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "pet"
+        ],
+        "operationId": "CreatePet",
+        "parameters": [
+          {
+            "description": "Nombre de la nueva mascota",
+            "name": "name",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Denominación de la especie de la nueva mascota",
+            "name": "specie",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sexo de la nueva mascota (Masculino o femenino)",
+            "name": "sex",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Fecha de nacimiento en formato 'yyyy-mm-ddThh:mm:ssZ'",
+            "name": "birthdate",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Éxito. Ok, sin problema"
+          },
+          "400": {
+            "description": "Error. Petición mal realizada"
+          },
+          "500": {
+            "description": "Error. Interno del servidor"
+          }
+        }
+      }
+    },
+    "/kpidemascotas": {
+      "get": {
+        "description": "Proporciona la especie con mas individuos registrados en el sistema",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "pet"
+        ],
+        "summary": "Facilita la especie mas abundante entre las entidades 'Pet' registradas en el sistema.",
+        "operationId": "ReportPets",
+        "parameters": [
+          {
+            "description": "Denominación de la especie de la nueva mascota",
+            "name": "specie",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Éxito. Ok, sin problema"
+          },
+          "400": {
+            "description": "Error. Petición mal realizada"
+          },
+          "500": {
+            "description": "Error. Interno del servidor"
+          }
+        }
+      }
+    },
+    "/kpidemascotas/{specie}": {
+      "get": {
+        "description": "Proporciona datos de una especia de 'Pet' dada específica\nFacilita la edad media y la desviación estándar de las edades de las 'Pet' registradas",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "pet"
+        ],
+        "operationId": "ReportPetsSpecies",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Denominación de la especie de la nueva mascota",
+            "name": "specie",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Éxito. Ok, sin problema"
+          },
+          "400": {
+            "description": "Error. Petición mal realizada"
+          },
+          "500": {
+            "description": "Error. Interno del servidor"
+          }
+        }
+      }
+    },
+    "/lismascotas": {
+      "get": {
+        "description": "Listado de las 'mascotas' registradas en el sistema\nProporciona un listado de las entidades 'Pet' en el sistema.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "pet"
+        ],
+        "operationId": "ListPets",
+        "parameters": [
+          {
+            "description": "Denominación de la especie de la nueva mascota",
+            "name": "specie",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Se trata de un objeto para control de paginación",
+            "name": "pageInfo",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Éxito. Ok, sin problema"
+          },
+          "400": {
+            "description": "Error. Petición mal realizada"
+          },
+          "500": {
+            "description": "Error. Interno del servidor"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Pagination": {
+      "type": "object",
+      "properties": {
+        "orderBy": {
+          "type": "string",
+          "x-go-name": "OrderBy"
+        },
+        "pageSize": {
+          "type": "string",
+          "x-go-name": "PageSize"
+        },
+        "pageToken": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PageToken"
+        },
+        "specie": {
+          "type": "string",
+          "x-go-name": "FilterBySpecie"
+        },
+        "totalItems": {
+          "type": "string",
+          "x-go-name": "TotalItems"
+        },
+        "totalPages": {
+          "type": "string",
+          "x-go-name": "TotalPages"
+        }
+      },
+      "x-go-package": "rpgmypet/models"
+    },
+    "Pet": {
+      "type": "object",
+      "required": [
+        "name",
+        "specie",
+        "sex",
+        "birthdate",
+        "id"
+      ],
+      "properties": {
+        "birthdate": {
+          "description": "Fecha de nacimiento de la mascota",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Birthdate"
+        },
+        "id": {
+          "description": "Id de la mascota",
+          "type": "string",
+          "x-go-name": "Id"
+        },
+        "name": {
+          "description": "Nombre de la mascota",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "sex": {
+          "description": "Sexo de la mascota",
+          "type": "string",
+          "x-go-name": "Sex"
+        },
+        "specie": {
+          "description": "Denominación de la especie de la mascota",
+          "type": "string",
+          "x-go-name": "Specie"
+        }
+      },
+      "x-go-package": "rpgmypet/models"
+    }
+  },
+  "responses": {
+    "createPetResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/Pet"
+      }
+    },
+    "listPetResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/Pagination"
+      },
+      "headers": {
+        "pets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Pet"
+          }
+        }
+      }
+    },
+    "reportPetResponse": {
+      "description": "",
+      "headers": {
+        "averageAge": {
+          "type": "string"
+        },
+        "standardAgeDeviation": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
