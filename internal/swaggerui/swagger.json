@@ -22,7 +22,7 @@
     },
     "version": "1.0.0"
   },
-  "host": "localhost:7050",
+  "host": "localhost:8080",
   "basePath": "/",
   "paths": {
     "/creamascota": {
@@ -97,16 +97,6 @@
         ],
         "summary": "Facilita la especie mas abundante entre las entidades 'Pet' registradas en el sistema.",
         "operationId": "ReportPets",
-        "parameters": [
-          {
-            "description": "Denominación de la especie de la nueva mascota",
-            "name": "specie",
-            "in": "body",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Éxito. Ok, sin problema"
@@ -162,25 +152,6 @@
           "pet"
         ],
         "operationId": "ListPets",
-        "parameters": [
-          {
-            "description": "Denominación de la especie de la nueva mascota",
-            "name": "specie",
-            "in": "body",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Se trata de un objeto para control de paginación",
-            "name": "pageInfo",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Éxito. Ok, sin problema"
@@ -196,37 +167,6 @@
     }
   },
   "definitions": {
-    "Pagination": {
-      "type": "object",
-      "properties": {
-        "orderBy": {
-          "type": "string",
-          "x-go-name": "OrderBy"
-        },
-        "pageSize": {
-          "type": "string",
-          "x-go-name": "PageSize"
-        },
-        "pageToken": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "PageToken"
-        },
-        "specie": {
-          "type": "string",
-          "x-go-name": "FilterBySpecie"
-        },
-        "totalItems": {
-          "type": "string",
-          "x-go-name": "TotalItems"
-        },
-        "totalPages": {
-          "type": "string",
-          "x-go-name": "TotalPages"
-        }
-      },
-      "x-go-package": "rpgmypet/models"
-    },
     "Pet": {
       "type": "object",
       "required": [
@@ -264,7 +204,7 @@
           "x-go-name": "Specie"
         }
       },
-      "x-go-package": "rpgmypet/models"
+      "x-go-package": "rpgmypet/internal/models"
     }
   },
   "responses": {
@@ -277,14 +217,9 @@
     "listPetResponse": {
       "description": "",
       "schema": {
-        "$ref": "#/definitions/Pagination"
-      },
-      "headers": {
-        "pets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Pet"
-          }
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Pet"
         }
       }
     },

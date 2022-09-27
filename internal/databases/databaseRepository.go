@@ -5,6 +5,10 @@ import (
 	"rpgmypet/internal/models"
 )
 
+/** Ésta 'class' representa una 'interface' para la implementación del patrón de diseño 'Repository',
+*   que facilita el cambio entre los distintos sistema de base de datos posibles.
+ */
+
 type DatabaseRepository interface {
 	//Common managing
 	CloseConnection() error
@@ -14,7 +18,7 @@ type DatabaseRepository interface {
 	InsertPet(ctx context.Context, pet *models.Pet) error
 
 	//* Read
-	ListPets(ctx context.Context, pageInfo *models.Pagination) (*models.Pagination, []*models.Pet, error)
+	ListPets(ctx context.Context, filterBySpecie string) ([]*models.Pet, error)
 
 	//* Métodos personalizados específicos
 	MostCommonPetSpecie(ctx context.Context) (string, error)
@@ -32,8 +36,8 @@ func CloseConnection() error {
 func InsertPet(ctx context.Context, pet *models.Pet) error {
 	return dbImplementation.InsertPet(ctx, pet)
 }
-func ListPets(ctx context.Context, pageInfo *models.Pagination) (*models.Pagination, []*models.Pet, error) {
-	return dbImplementation.ListPets(ctx, pageInfo)
+func ListPets(ctx context.Context, filterBySpecie string) ([]*models.Pet, error) {
+	return dbImplementation.ListPets(ctx, filterBySpecie)
 }
 func MostCommonPetSpecie(ctx context.Context) (string, error) {
 	return dbImplementation.MostCommonPetSpecie(ctx)

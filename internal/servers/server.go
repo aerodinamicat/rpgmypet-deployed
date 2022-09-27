@@ -11,28 +11,27 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Config struct {
-	Host string
-	Port string
-}
 type DBConfig struct {
-	User           string
-	Password       string
-	ConnectionName string
-	Schema         string
+	User     string
+	Password string
+	Host     string
+	Port     string
+	Name     string
 }
 
 type HttpServer struct {
-	Config   *Config
-	DBConfig *DBConfig
-	Router   *mux.Router
+	Environment string
+	Port        string
+	DBConfig    *DBConfig
+	Router      *mux.Router
 }
 
-func NewHttpServer(ctx context.Context, cfg *Config, dbCfg *DBConfig) *HttpServer {
+func NewHttpServer(ctx context.Context, environment, port string, dbCfg *DBConfig) *HttpServer {
 	return &HttpServer{
-		Config:   cfg,
-		DBConfig: dbCfg,
-		Router:   mux.NewRouter(),
+		Environment: environment,
+		Port:        port,
+		DBConfig:    dbCfg,
+		Router:      mux.NewRouter(),
 	}
 }
 
@@ -83,31 +82,6 @@ func (srv *HttpServer) SetEndpoints() {
 	// ---
 	// produces:
 	// - application/json
-	// Parameters:
-	// - name: orderBy
-	//   in: path
-	//   description: Criterio de ordenación de los resultados solicitados encontrados
-	//   required: false
-	//   schema:
-	//     type: string
-	// - name: filterBySpecie
-	//   in: path
-	//   description: Criterio de baremo de los resultados solicitados encontrados
-	//   required: false
-	//   schema:
-	//     type: string
-	// - name: pageSize
-	//   in: path
-	//   description: Cantidad de resultados a mostrar por página
-	//   required: false
-	//   schema:
-	//     type: string
-	// - name: pageToken
-	//   in: path
-	//   description: Número de la página a mostrar
-	//   required: false
-	//   schema:
-	//     type: string
 	// Responses:
 	//   '200':
 	//     description: Éxito. Ok, sin problema
@@ -153,15 +127,18 @@ func (srv *HttpServer) SetEndpoints() {
 	//     description: Error. Interno del servidor
 	srv.Router.HandleFunc("/kpidemascotas/{specie}", handlers.ReportPets()).Methods(http.MethodGet)
 
-	srv.Router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./swaggerui"))))
+	srv.Router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./internal/swaggerui"))))
 }
 
+//* Método para configurar, iniciar y comenzar a escuchar peticiones HTTP.
 func (srv *HttpServer) Start() {
 	dbr, err := databases.NewPostgresImplementation(
+		srv.Environment,
 		srv.DBConfig.User,
 		srv.DBConfig.Password,
-		srv.DBConfig.ConnectionName,
-		srv.DBConfig.Schema,
+		srv.DBConfig.Host,
+		srv.DBConfig.Port,
+		srv.DBConfig.Name,
 	)
 	if err != nil {
 		log.Fatalf("Database connection failed: '%v'", err)
@@ -171,8 +148,8 @@ func (srv *HttpServer) Start() {
 
 	srv.SetEndpoints()
 
-	log.Printf("Starting server on: %s:%s\n", srv.Config.Host, srv.Config.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", srv.Config.Port), srv.Router); err != nil {
+	log.Printf("Starting server on port: %s\n", srv.Port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", srv.Port), srv.Router); err != nil {
 		log.Fatalf("Failed 'ListenAndServe': %v", err)
 	}
 }

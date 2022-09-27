@@ -25,6 +25,7 @@ type Pet struct {
 	Id string `json:"id"`
 }
 
+//* Método para calcular la edad de una 'Pet' en días.
 func (p *Pet) GetAgeInDays() float64 {
 	return float64(time.Since(p.Birthdate).Hours() / 24)
 }

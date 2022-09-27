@@ -1,4 +1,17 @@
-### Para comenzar a testear, visitar (dicha URL la denominaremos '~'):
+### Requisitos (tener instalado):
+- Docker y docker-compose
+- Go
+
+### Para comenzar a realizar pruebas en entorno de desarrollo local, ejecutar:
+> `make serve`
+
+### Para finalizar las pruebas en entorno de desarrollo local, ejecutar:
+> `make destroy`
+
+### Para comenzar a realizar pruebas en entorno de desarrollo local, visitar (dicha URL la denominaremos '~'):
+> `http://localhost:8080`
+
+### Para comenzar a realizar pruebas en entorno de producción, únicamente visitar (dicha URL la denominaremos '~'):
 > `https://rpgmypet-server-mh2nagbpxq-no.a.run.app`
 
 ### Los endpoints son:
@@ -7,22 +20,14 @@
 	"name": "nombre18".
 	"specie": "especie18",
 	"sex": "sexo18",
-	"birthdate": "2022-09-21T22:10:11Z"
+	"birthdate": "2022-09-21T22:10:11Z" (Necesariamente debe ser éste formato: 'yyyy-mm-ddThh:mm:ssZ')
 }</pre>
 
-- '~/lismascotas', que solicita queryParams:
-	- 'orderBy': en formato SQL, dicta en qué orden (ascendente o descendente) y qué campo, o columna,
-	deben ordenarse los resultados.
-	- 'filterBySpecie: barema resultados por dicho campo'.
-	- 'pageSize': ajusta la cantidad de resultados mostrados en cada muestreo.
-	- 'pageToken': visualiza que grupo de resultados, según 'pageSize' debe mostrarse. Corresponde al
-	número de página a mostrar.
-	- 'totalItems': corresponde a la cantidad de resultados encontrados en la búsqueda.
-	- 'totalPages': corresponde a la cantidad de muestreos máximos para visualizar todos los resultados.
+- '~/lismascotas'
 
 - '~/kpidemascotas/{specie}', que solicita un queryParam llamado "specie" que, en caso de concurrencia,
 predomina con respecto al siguiente endpoint.
 
 - '~/kpidemascotas'
 
-- '~/doc', que muestra la documentación precompilada con go-swagger
+- '~/doc/', que muestra la documentación precompilada con go-swagger

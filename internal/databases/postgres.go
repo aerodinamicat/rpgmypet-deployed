@@ -4,50 +4,50 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"rpgmypet/internal/models"
-	"strconv"
 
 	_ "github.com/lib/pq"
 )
 
 const (
-	DEFAULT_PROTOCOOL = "postgres"
+	DEFAULT_PROTOCOL = "postgres"
+	DEV_ENVIRONMENT  = "dev"
+	PROD_ENVIRONMENT = "prod"
 )
 
 type PostgresImplementation struct {
 	DBConn *sql.DB
 
-	DatabaseConnectionName string
-	DatabasePassword       string
-	DatabaseProtocool      string
-	DatabaseSchema         string
-	DatabaseUser           string
+	DatabaseUser     string
+	DatabasePassword string
+	DatabaseHost     string
+	DatabasePort     string
+	DatabaseName     string
 }
 
-//* Método para la instanciación de implementaciones PostGreSQL
-func NewPostgresImplementation(user, password, connectionName, schema string) (*PostgresImplementation, error) {
-	url := buildURL(user, password, connectionName, schema)
+//* Método para crear una nueva instancia de repositorio PostgreSQL.
+func NewPostgresImplementation(environment, user, password, host, port, name string) (*PostgresImplementation, error) {
+	url := fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=disable", DEFAULT_PROTOCOL, user, password, host, port, name)
 
-	dbConnection, err := sql.Open(DEFAULT_PROTOCOOL, url)
+	if environment == PROD_ENVIRONMENT {
+		url = fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", user, password, name, host)
+	}
+
+	dbConnection, err := sql.Open(DEFAULT_PROTOCOL, url)
 	if err != nil {
 		return nil, err
 	}
 
 	pgr := &PostgresImplementation{
-		DBConn:                 dbConnection,
-		DatabaseConnectionName: connectionName,
-		DatabasePassword:       password,
-		DatabaseProtocool:      DEFAULT_PROTOCOOL,
-		DatabaseSchema:         schema,
-		DatabaseUser:           user,
+		DBConn:           dbConnection,
+		DatabaseUser:     user,
+		DatabasePassword: password,
+		DatabaseHost:     host,
+		DatabaseName:     name,
 	}
 
 	return pgr, nil
-}
-
-//* Método privado para construir la URL de conexión a DB.
-func buildURL(user, password, connectionName, schema string) string {
-	return fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", user, password, schema, connectionName)
 }
 
 //* Método para el cierre de conexiones a DB
@@ -63,7 +63,7 @@ func (pgr *PostgresImplementation) InsertPet(ctx context.Context, pet *models.Pe
 		sex,
 		birthdate,
 		id
-	) VALUES ($1,$2,$3,$4,$5)`
+	) VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := pgr.DBConn.ExecContext(ctx, querySentence,
 		pet.Name,
@@ -73,61 +73,16 @@ func (pgr *PostgresImplementation) InsertPet(ctx context.Context, pet *models.Pe
 		pet.Id,
 	)
 	if err != nil {
+		log.Println("error dbConn")
 		return err
 	}
 
 	return nil
 }
 
-//* Método para obtener todos las entidades "Pet" del sistema CON control de paginación.
-func (pgr *PostgresImplementation) ListPets(ctx context.Context, pageInfo *models.Pagination) (*models.Pagination, []*models.Pet, error) {
-	querySentence := ""
-	if pageInfo.TotalPages == "0" && pageInfo.TotalItems == "0" {
-		querySentence = ` SELECT
-			count(*) AS total_items
-			FROM pets
-		`
-		if pageInfo.FilterBySpecie != "" {
-			querySentence += fmt.Sprintf(" WHERE specie = '%s'", pageInfo.FilterBySpecie)
-		}
-
-		rows, err := pgr.DBConn.QueryContext(ctx, querySentence)
-		if err != nil {
-			pageInfo.TotalPages = "0"
-			pageInfo.TotalItems = "0"
-
-			return pageInfo, nil, err
-		}
-
-		for rows.Next() {
-			if err = rows.Scan(
-				&pageInfo.TotalItems,
-			); err != nil {
-				pageInfo.TotalPages = "0"
-				pageInfo.TotalItems = "0"
-
-				return pageInfo, nil, err
-			}
-		}
-		defer rows.Close()
-		if err = rows.Err(); err != nil {
-			pageInfo.TotalPages = "0"
-			pageInfo.TotalItems = "0"
-
-			return pageInfo, nil, err
-		}
-
-		totalItems, _ := strconv.Atoi(pageInfo.TotalItems)
-		pageSize, _ := strconv.Atoi(pageInfo.PageSize)
-		if totalItems%pageSize != 0 {
-			pageInfo.TotalPages = fmt.Sprintf("%d", (totalItems/pageSize)+1)
-		} else {
-			pageInfo.TotalPages = fmt.Sprintf("%d", (totalItems / pageSize))
-		}
-		pageInfo.PageToken = 1
-	}
-
-	querySentence = `SELECT
+//* Método para obtener todas las entidades "Pet" del sistema. Puede, o no, filtrar por el campo 'specie'.
+func (pgr *PostgresImplementation) ListPets(ctx context.Context, filterBySpecie string) ([]*models.Pet, error) {
+	querySentence := `SELECT
 		name,
 		specie,
 		sex,
@@ -135,23 +90,15 @@ func (pgr *PostgresImplementation) ListPets(ctx context.Context, pageInfo *model
 		id
 		FROM pets
 	`
-	if pageInfo.FilterBySpecie != "" {
-		querySentence += fmt.Sprintf(" WHERE specie = '%s'", pageInfo.FilterBySpecie)
+	if filterBySpecie != "" {
+		querySentence += fmt.Sprintf(" WHERE specie = '%s'", filterBySpecie)
 	}
 
-	if pageInfo.PageSize == "ALL" {
-		querySentence += fmt.Sprintf(" ORDER BY %s LIMIT %s OFFSET 0", pageInfo.OrderBy, pageInfo.PageSize)
-	} else {
-		pageSize, _ := strconv.Atoi(pageInfo.PageSize)
-		querySentence += fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", pageInfo.OrderBy, pageSize, (pageInfo.PageToken-1)*pageSize)
-	}
+	querySentence += " ORDER BY name asc"
 
 	rows, err := pgr.DBConn.QueryContext(ctx, querySentence)
 	if err != nil {
-		pageInfo.TotalPages = "0"
-		pageInfo.TotalItems = "0"
-
-		return pageInfo, nil, err
+		return nil, err
 	}
 
 	var pets []*models.Pet
@@ -164,10 +111,7 @@ func (pgr *PostgresImplementation) ListPets(ctx context.Context, pageInfo *model
 			&pet.Birthdate,
 			&pet.Id,
 		); err != nil {
-			pageInfo.TotalPages = "0"
-			pageInfo.TotalItems = "0"
-
-			return pageInfo, nil, err
+			return nil, err
 		}
 
 		pets = append(pets, pet)
@@ -175,16 +119,13 @@ func (pgr *PostgresImplementation) ListPets(ctx context.Context, pageInfo *model
 	defer rows.Close()
 
 	if err = rows.Err(); err != nil {
-		pageInfo.TotalPages = "0"
-		pageInfo.TotalItems = "0"
-
-		return pageInfo, nil, err
+		return nil, err
 	}
 
-	pageInfo.PageToken++
-
-	return pageInfo, pets, nil
+	return pets, nil
 }
+
+//* Método para obtener la especie con mayor índice de sujetos en el sistema.
 func (pgr *PostgresImplementation) MostCommonPetSpecie(ctx context.Context) (string, error) {
 	querySentence := `SELECT
 		specie,
@@ -200,11 +141,11 @@ func (pgr *PostgresImplementation) MostCommonPetSpecie(ctx context.Context) (str
 		return "", err
 	}
 
-	specie := ""
+	mostCommonSpecie := ""
 	amount := 0
 	for rows.Next() {
 		if err = rows.Scan(
-			&specie,
+			&mostCommonSpecie,
 			&amount,
 		); err != nil {
 			return "", err
@@ -216,5 +157,5 @@ func (pgr *PostgresImplementation) MostCommonPetSpecie(ctx context.Context) (str
 		return "", err
 	}
 
-	return specie, nil
+	return mostCommonSpecie, nil
 }

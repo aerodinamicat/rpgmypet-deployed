@@ -6,7 +6,7 @@
 // Terms of Service:
 //
 // Schemes: http
-// Host: localhost:7050
+// Host: localhost:8080
 // BasePath: /
 // Version: 1.0.0
 // License: MIT http://opensource.org/licenses/MIT
@@ -28,19 +28,15 @@ import (
 )
 
 func main() {
-	config := &servers.Config{
-		Host: os.Getenv("APP_HOST"),
-		Port: os.Getenv("APP_PORT"),
-	}
-
 	dbConfig := &servers.DBConfig{
-		User:           os.Getenv("DB_USER"),
-		Password:       os.Getenv("DB_PASSWORD"),
-		ConnectionName: os.Getenv("CLOUD_SQL_CONNECTION_NAME"),
-		Schema:         os.Getenv("DB_SCHEMA"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Name:     os.Getenv("DB_NAME"),
 	}
 
-	srv := servers.NewHttpServer(context.Background(), config, dbConfig)
+	srv := servers.NewHttpServer(context.Background(), os.Getenv("APP_ENVIRONMENT"), os.Getenv("APP_PORT"), dbConfig)
 
 	srv.Start()
 }

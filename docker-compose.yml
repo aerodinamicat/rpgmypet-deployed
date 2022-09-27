@@ -11,22 +11,22 @@ services:
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_SCHEMA}
+      - POSTGRES_DB=${DB_NAME}
   
   server:
-    container_name: rpgmypet_app
+    container_name: rpgmypet_server
     build:
       context: .
-      dockerfile: Dockerfile.local
+      dockerfile: .
     ports:
-      - "7050:7050"
+      - "8080:8080"
     environment:
-      - APP_HOST=localhost
-      - APP_PORT=7050
-      - DB_USER=postgres
-      - DB_PASSWORD=admin1234
-      - DB_HOST=34.175.1.64
-      - DB_PORT=5432
-      - DB_SCHEMA=postgres
+      - APP_ENVIRONMENT=${APP_ENVIRONMENT}
+      - APP_PORT=${APP_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
     depends_on:
       - db
